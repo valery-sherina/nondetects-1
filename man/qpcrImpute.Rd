@@ -3,12 +3,13 @@
 \title{Impute Non-detects in qPCR data}
 \description{
   This function models the missing data mechanism and uses an EM
-  algorithm to impute the non-detect values in qPCR data. 
+  algorithm to impute the non-detect values in the qPCR data. 
 }
 \usage{
-qpcrImpute(object, dj=NULL, pyfit=NULL, groupVars=NULL, tol=1, iterMax=100, 
-          outform=c("Single","Param","Multy"), formula=NULL, numsam=5, 
-          vary_fit=TRUE, vary_model=TRUE, add_noise=TRUE)
+qpcrImpute(object, dj=NULL, pyfit=NULL, groupVars=NULL, batch=NULL, tol=1, 
+          iterMax=100, outform=c("Single","Param","Multy"), 
+          vary_fit=TRUE, vary_model=TRUE, add_noise=TRUE,
+          formula=NULL, numsam=5)
 }
 \arguments{
   \item{object}{a qPCRset}
@@ -20,6 +21,7 @@ qpcrImpute(object, dj=NULL, pyfit=NULL, groupVars=NULL, tol=1, iterMax=100,
     relationship is estimated from the data.} 
   \item{groupVars}{which columns in pData(object) should be used to
     determine replicate samples. If NULL, all columns are used.} 
+  \item{batch}{matrix with batch effects, it has the same dimentions as exprs(object). If NULL,        batch effect matrix is a zero matrix.} 
   \item{tol}{likelihood convergence criterion of the EM algorithm.}
   \item{iterMax}{maximimum number of iterations of the EM algorithm.}
   
@@ -36,8 +38,8 @@ qpcrImpute(object, dj=NULL, pyfit=NULL, groupVars=NULL, tol=1, iterMax=100,
 }
 \author{Valeriia Sherina, Matthew N. McCall}
 \examples{
-  data(sagmb2011)
-  tst <- qpcrImpute(sagmb2011,groupVars="sampleType", outform="Param")
+  data(nature2008)
+  tst <- qpcrImpute(nature2008, groupVars="sampleType", outform="Param")
 }
 \keyword{manip}
 
