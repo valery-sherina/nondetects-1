@@ -45,10 +45,10 @@ g(Y_{ijk}) & \textrm{if $Y_{ijk} < 40$} \\
 
 Here, $g(Y_{ijk})$ can be estimated via the following logistic regression:
 \[
-logit(Pr(Z_{ijk}=1)) =  \beta_0 + \beta_1 \hat{\theta}_{ij}
+logit(Pr(Z_{ijk}=1)) =  \beta_0 + \beta_1 median(Y_{ij.})
 \]
-where $\hat{\theta}_{ij}$ is an estimate of the average expression for
-gene $i$ and sample-type $j$. 
+where $median(Y_{ij.})$ is an estimate of the average expression for
+gene $i$ and sample-type $j$ over $k$ replicates.
 
 # 3 Example
 
