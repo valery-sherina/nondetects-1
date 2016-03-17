@@ -1,7 +1,7 @@
 # actual function
 qpcrImpute <- function(object, dj=NULL, pyfit=NULL, groupVars=NULL, batch=NULL, tol=1,
-                       iterMax=100, outform=c("Single","Param","Multy"), formula=NULL, numsam=5, 
-                       vary_fit=TRUE, vary_model=TRUE, add_noise=TRUE)
+                       iterMax=100, outform=c("Single","Param","Multy"), 
+                       vary_fit=TRUE, vary_model=TRUE, add_noise=TRUE, formula=NULL, numsam=5)
 {
 
   outform<-match.arg(outform)

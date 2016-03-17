@@ -32,27 +32,27 @@ EZ2 <- function(mu, s2, pyfit, EZ){
 
 ## M-STEP FUNCTIONS
 
-updateS2 <- function(Ct, thetaVec, dj, ez, ez2, i.nd, ngene, nperts){
+updateS2 <- function(Ct, thetaVec, dj, batch, ez, ez2, i.nd, ngene, nperts){
   s2Vec <- vector(length=length(Ct))
   s2Mat <- matrix(nrow=max(ngene), ncol=max(nperts))
   for(i in 1:max(ngene)){
     for(j in 1:max(nperts)){
-      ind <- which(ngene == i)
-      indD <- intersect(ind, which(!i.nd))
-      indND <- intersect(ind, which(i.nd))
-      p1 <- sum((Ct[indD]-(thetaVec[indD]+dj[indD]))^2)
-      p2 <- sum(ez2[indND]-2*ez[indND]*(thetaVec[indND]+dj[indND])
-                +((thetaVec[indND]+dj[indND])^2))
+      ind        <- which(ngene == i)
+      indD       <- intersect(ind, which(!i.nd))
+      indND      <- intersect(ind, which(i.nd))
+      p1         <- sum((Ct[indD]-(thetaVec[indD]+dj[indD]+batch[indD]))^2)
+      p2         <- sum(ez2[indND]-2*ez[indND]*(thetaVec[indND]+dj[indND]+batch[indND])+
+                                              ((thetaVec[indND]+dj[indND]+batch[indND])^2))
       s2Vec[ind] <- s2Mat[i,j] <- (p1+p2)/length(ind)
     }
   }
   return(list(s2Vec, s2Mat))
 }
 
-updateTheta <- function(Y, ez, dj, i.nd, ngene, nperts, Design){
-  thetaVec <- vector(length=length(Y))
-  thetaMat <- matrix(nrow=max(ngene), ncol=max(nperts))
-  Y[which(i.nd==TRUE)]<-ez[which(i.nd==TRUE)]-dj[which(i.nd==TRUE)]
+updateTheta <- function(Y, ez, dj, batch, i.nd, ngene, nperts, Design){
+  thetaVec             <- vector(length=length(Y))
+  thetaMat             <- matrix(nrow=max(ngene), ncol=max(nperts))
+  Y[which(i.nd==TRUE)] <- ez[which(i.nd==TRUE)]-dj[which(i.nd==TRUE)]-batch[which(i.nd==TRUE)]
   #DesLM=model.matrix(formula,as.data.frame(nrep))
   fit.lmFit=lmFit(Y, design=Design)
 
@@ -85,21 +85,19 @@ updateTheta <- function(Y, ez, dj, i.nd, ngene, nperts, Design){
 # }
 
 
-logLik <- function(Ct, ez, ez2, s2Vec, thetaVec, dj, i.nd){
+logLik <- function(Ct, ez, ez2, s2Vec, thetaVec, dj, batch, i.nd){
   p1 <- -sum(log(2*pi*s2Vec)/2)
-  p2 <- -sum(((Ct[which(!i.nd)]-(thetaVec[which(!i.nd)]+dj[which(!i.nd)]))^2)
+  p2 <- -sum(((Ct[which(!i.nd)]-(thetaVec[which(!i.nd)]+dj[which(!i.nd)]+batch[which(!i.nd)]))^2)
              / (2*s2Vec[which(!i.nd)]))
-  p3 <- -sum((ez2[which(i.nd)]-2*ez[which(i.nd)]
-              *(thetaVec[which(i.nd)]+dj[which(i.nd)])+
-              (thetaVec[which(i.nd)]+dj[which(i.nd)])^2)
-             / (2*s2Vec[which(i.nd)]))
+  p3 <- -sum((ez2[which(i.nd)]-2*ez[which(i.nd)] * (thetaVec[which(i.nd)] + dj[which(i.nd)] + batch[which(i.nd)])+
+               (thetaVec[which(i.nd)] + dj[which(i.nd)] + batch[which(i.nd)] )^2 ) / (2*s2Vec[which(i.nd)]) )
   p1+p2+p3
 }
 
 
 #########################################
 ## Multiple imputation
-multy <- function(object, pyfit, numsam, params.new, Ct, Y, dj, ez, ez2,
+multy <- function(object, pyfit, numsam, params.new, Ct, Y, dj, batch, ez, ez2,
                   i.nd, ngene, ntype, DesLM, iterMax, tol,
                   vary_fit, vary_model, add_noise)
 {
@@ -136,13 +134,13 @@ multy <- function(object, pyfit, numsam, params.new, Ct, Y, dj, ez, ez2,
       {
         if(i.nd[i])
         {
-          xi <- params$thetaVec[i]+dj[i]
+          xi <- params$thetaVec[i]+dj[i]+batch[i]
           ez[i] <- EZ(xi, params$s2Vec[i], multyfit)
         }
       }
 
       ## M-Step -- theta
-      thetas <- updateTheta(Y, ez, dj, i.nd, ngene, ntype, DesLM)
+      thetas <- updateTheta(Y, ez, dj, batch, i.nd, ngene, ntype, DesLM)
       params$thetaVec   <- thetas[[1]]
       params$thetaMat   <- thetas[[2]]
       params$sigma      <- thetas[[3]]
@@ -153,21 +151,21 @@ multy <- function(object, pyfit, numsam, params.new, Ct, Y, dj, ez, ez2,
       ez <- ez2 <- rep(NA, length=length(Ct))
       for(i in 1:length(Ct)){
         if(i.nd[i]){
-          xi <- params$thetaVec[i]+dj[i]
+          xi <- params$thetaVec[i]+dj[i]+batch[i]
           ez[i] <- EZ(xi, params$s2Vec[i], multyfit)
           ez2[i] <- EZ2(xi, params$s2Vec[i], multyfit, ez[i])
         }
       }
 
       ## M-Step -- sigma2
-      sigmas <- updateS2(Ct, params$thetaVec, dj, ez, ez2,
+      sigmas <- updateS2(Ct, params$thetaVec, dj, batch, ez, ez2,
                          i.nd, ngene, ntype)
       params$s2Vec <- sigmas[[1]]
       params$s2Mat <- sigmas[[2]]
 
       ## log-likelihoog
       ll[iter] <- logLik(Ct, ez, ez2, params$s2Vec,
-                         params$thetaVec, dj, i.nd)
+                         params$thetaVec, dj, batch, i.nd)
       message(ll[iter])
 
       if(iter>1) cond <- (abs(ll[iter]-ll[iter-1]) > tol) & (iter < iterMax)
@@ -202,7 +200,7 @@ multy <- function(object, pyfit, numsam, params.new, Ct, Y, dj, ez, ez2,
      {
       if(i.nd[i])
        {
-        xi <- params$thetaVec[i]+dj[i]
+        xi <- params$thetaVec[i]+dj[i]+batch[i]
         ez[i] <- EZ(xi, params$s2Vec[i], multyfit)
        }
      }
@@ -238,7 +236,7 @@ if (add_noise)
   {
     if(i.nd[i])
     {
-     # xi <- params$thetaVec[i]+dj[i]
+     # xi <- params$thetaVec[i]+dj[i]+batch[i]
       ez[i] <- ez[i] + epsilonVec[i]
     }
   }
