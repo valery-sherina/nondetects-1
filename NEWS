@@ -1,3 +1,7 @@
+CHANGES IN VERSION 1.99.1
+-------------------------
+    o Added option for the batch effect.
+    
 CHANGES IN VERSION 1.99.0
 -------------------------
     o Added option for the output of model parameters.
