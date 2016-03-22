@@ -12,5 +12,9 @@ importFrom(mvtnorm, rmvnorm)
 importFrom(limma, lmFit)
 
 import(HTqPCR)
+# addition recommended by Bioconductor
+importFrom("stats", "as.formula", "binomial", "dnorm", "glm",
+             "integrate", "median", "model.matrix", "predict", "rnorm")
+importFrom("utils", "capture.output")
 
 export(qpcrImpute)
