@@ -38,8 +38,8 @@ qpcrImpute(object, dj=NULL, pyfit=NULL, groupVars=NULL, batch=NULL, tol=1,
 }
 \author{Valeriia Sherina, Matthew N. McCall}
 \examples{
-  data(nature2008)
-  tst <- qpcrImpute(nature2008, groupVars="sampleType", outform="Param")
+  data(oncogene2013)
+  tst <- qpcrImpute(oncogene2013, groupVars=c("sampleType","treatment"), outform="Param")
 }
 \keyword{manip}
 
