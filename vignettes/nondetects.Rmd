@@ -94,7 +94,7 @@ boxes <- list("observed"=-resids[iD], "non-detect"=-resids[iND])
 ```
 
 ```{r, echo=TRUE}
-boxplot(boxes, main="",ylim=c(-12,12),
+boxplot(boxes, main="",ylim=c(-5,5),
         ylab=expression(paste("-",Delta,"Ct residuals",sep="")))
 ```
 
@@ -136,7 +136,7 @@ iD <- which(featureCategory(normCt)!="Imputed", arr.ind=TRUE)
 boxes <- list("observed"=-resids[iD], "imputed"=-resids[iI])
 ```
 ```{r, echo=TRUE}
-boxplot(boxes, main="",ylim=c(-12,12),
+boxplot(boxes, main="",ylim=c(-5,5),
         ylab=expression(paste("-",Delta,"Ct residuals",sep="")))
 ```
 
